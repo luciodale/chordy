@@ -29,6 +29,9 @@ describe('parseChord', () => {
     ['C6/9', { root: 'C', suffix: '6/9', bass: null }],
     ['F#m7b5', { root: 'F#', suffix: 'm7b5', bass: null }],
     ['DO#/RE#m', { root: 'C#', suffix: '', bass: 'D#' }],
+    ['MIb7/4', { root: 'Eb', suffix: '7sus4', bass: null }],
+    ['LA/4', { root: 'A', suffix: 'sus4', bass: null }],
+    ['SIbm7', { root: 'Bb', suffix: 'm7', bass: null }],
   ])('%s', (token, expected) => {
     expect(parseChord(token)).toEqual(expected);
   });
