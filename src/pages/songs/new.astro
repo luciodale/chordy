@@ -1,0 +1,10 @@
+---
+import { SongEditor } from '@/components/SongEditor';
+import Layout from '@/layouts/Layout.astro';
+
+const initial = { id: null, title: '', artist: '', songKey: null, body: '', hasSource: false };
+---
+
+<Layout title="New song · Chordy">
+  <SongEditor client:load initial={initial} />
+</Layout>

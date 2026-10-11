@@ -1,0 +1,27 @@
+---
+import { SongViewer } from '@/components/SongViewer';
+import { getDb } from '@/db/client';
+import Layout from '@/layouts/Layout.astro';
+import { parseId } from '@/lib/http';
+import { getSong } from '@/lib/songs';
+
+const id = parseId(Astro.params.id);
+const song = id ? await getSong(getDb(Astro.locals.runtime.env.DB), id) : undefined;
+if (!song) return Astro.redirect('/');
+
+const viewerSong = {
+  id: song.id,
+  title: song.title,
+  artist: song.artist,
+  songKey: song.songKey,
+  body: song.body,
+  sourceUrl: song.sourceUrl,
+  transpose: song.transpose,
+  simplify: song.simplify,
+  scrollSpeed: song.scrollSpeed,
+};
+---
+
+<Layout title={`${song.title} · Chordy`}>
+  <SongViewer client:load song={viewerSong} />
+</Layout>

@@ -1,0 +1,8 @@
+@import "@fontsource/roboto-mono/400.css";
+@import "@fontsource/roboto-mono/700.css";
+@import "tailwindcss";
+
+@theme {
+  /* Monospace like a printed chord sheet: chord widths become exact. */
+  --font-sheet: "Roboto Mono", ui-monospace, monospace;
+}

@@ -1,0 +1,12 @@
+---
+import { Library } from '@/components/Library';
+import { getDb } from '@/db/client';
+import Layout from '@/layouts/Layout.astro';
+import { listSongs } from '@/lib/songs';
+
+const songs = await listSongs(getDb(Astro.locals.runtime.env.DB));
+---
+
+<Layout title="Chordy">
+  <Library client:load songs={songs} />
+</Layout>

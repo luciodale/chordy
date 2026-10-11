@@ -1,0 +1,17 @@
+---
+import { SongEditor } from '@/components/SongEditor';
+import { getDb } from '@/db/client';
+import Layout from '@/layouts/Layout.astro';
+import { parseId } from '@/lib/http';
+import { getSong } from '@/lib/songs';
+
+const id = parseId(Astro.params.id);
+const song = id ? await getSong(getDb(Astro.locals.runtime.env.DB), id) : undefined;
+if (!song) return Astro.redirect('/');
+
+const initial = { id: song.id, title: song.title, artist: song.artist, songKey: song.songKey, body: song.body, hasSource: song.source !== 'manual' };
+---
+
+<Layout title={`Edit ${song.title} · Chordy`}>
+  <SongEditor client:load initial={initial} />
+</Layout>
