@@ -1,5 +1,5 @@
 import { formatChord, parseChord } from '@/lib/chords/chord';
-import { textToChordPro } from '@/lib/chords/importText';
+import { isChordLine, textToChordPro } from '@/lib/chords/importText';
 import { decodeEntities } from '@/lib/html';
 import { fetchText, type RemoteSong, type SourceAdapter } from './types';
 
@@ -72,12 +72,17 @@ function bestPerSong(results: UgResult[]): RemoteSong[] {
 const FINGERING = /^\s*\S+\s+[x\d]{1,2}(?:[-\s.]?[x\d]{1,2}){5}\s*$/i;
 const TAB_STAFF = /^\s*[eBGDAE]\|.*$/;
 
+const SECTION = /^\s*\[[^\]]+\]\s*$/;
+
+// Drops guitar only lines, and the uploader's credits before the song starts
+// (the first section label or chord line).
 export function cleanContent(content: string): string {
-  return content
+  const lines = content
     .replace(/\[\/?(tab|ch)\]/g, '')
     .split(/\r?\n/)
-    .filter((line) => !FINGERING.test(line) && !TAB_STAFF.test(line))
-    .join('\n');
+    .filter((line) => !FINGERING.test(line) && !TAB_STAFF.test(line));
+  const start = lines.findIndex((line) => SECTION.test(line) || isChordLine(line));
+  return (start === -1 ? lines : lines.slice(start)).join('\n');
 }
 
 export const ultimateguitar: SourceAdapter = {

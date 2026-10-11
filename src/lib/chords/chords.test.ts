@@ -5,6 +5,7 @@ import { textToChordPro } from './importText';
 import { prefersFlats } from './key';
 import { cleanPost } from '../sources/psicoaccordi';
 import { cleanContent } from '../sources/ultimateguitar';
+import { borrowChords, fillRepeatedSections } from './repeat';
 import { insertLabel, moveLine, removeLine } from './sections';
 import { groupBlocks } from './blocks';
 import { chordIntervals, chordVoicing } from './piano';
@@ -313,5 +314,76 @@ describe('chord line extras', () => {
   it('stays a plain sheet when a single bracketed chord appears', () => {
     const text = ['Do      Sol', 'prima riga', '[Fa]'].join('\n');
     expect(textToChordPro(text)).toBe('[C]prima ri[G]ga\n[F]');
+  });
+});
+
+describe('bracketed notes on chord lines', () => {
+  it('keeps the chord of a numbered ending and turns the rest into notes', () => {
+    const text = ['C      Dm7   [1: F]', 'some words for a test'].join('\n');
+    expect(textToChordPro(text)).toBe('[C]some wo[Dm7]rds fo[(1:)]r a t[F]est');
+  });
+
+  it('reads a note without chords', () => {
+    const text = ['C     G     [2: to bridge]', 'another line to test here'].join('\n');
+    expect(textToChordPro(text)).toBe('[C]anothe[G]r line[(2:_to_bridge)] to test here');
+  });
+});
+
+describe('fillRepeatedSections', () => {
+  const options = { transpose: 0, simplify: false, notation: 'english', preferFlats: false } as const;
+  const body = [
+    '{c: Verse 1}',
+    '[C]walking in the [G]morning light',
+    '[Am]talking to the [F]river',
+    '',
+    '{c: Verse 2}',
+    'running past the evening hill',
+    'singing to the water',
+    '',
+    '{c: Bridge}',
+    'nothing borrowed here',
+  ].join('\n');
+
+  function blocks() {
+    return groupBlocks(renderSheet(fillRepeatedSections(parseChordPro(body)), options));
+  }
+
+  it('borrows chords from the earlier section with the same name', () => {
+    const verse2 = blocks()[1];
+    expect(verse2?.label).toBe('Verse 2');
+    expect(verse2?.note).toBe('chords from Verse 1');
+    const first = verse2?.lines[0];
+    if (first?.kind !== 'lyrics') throw new Error('expected lyrics');
+    expect(first.words.flat().filter((piece) => piece.chord).map((piece) => [piece.chord?.label, piece.text])).toEqual([
+      ['C', 'running '],
+      ['G', 'evening '],
+    ]);
+  });
+
+  it('leaves sections without a matching earlier section alone', () => {
+    const bridge = blocks()[2];
+    expect(bridge?.note).toBeNull();
+    const line = bridge?.lines[0];
+    expect(line?.kind === 'lyrics' && line.hasChords).toBe(false);
+  });
+
+  it('never touches a section that has its own chords', () => {
+    const verse1 = blocks()[0];
+    expect(verse1?.note).toBeNull();
+  });
+});
+
+describe('ultimate guitar credits', () => {
+  it('drops lines before the first section or chord line', () => {
+    expect(cleanContent('Tabbed by someone\nthanks to a friend\n\n[Intro]\nC  G')).toBe('[Intro]\nC  G');
+  });
+});
+
+describe('borrowChords', () => {
+  it('copies chords but not notes', () => {
+    const template = parseChordPro('[C]one two [(1:)]three [G]four').lines[0];
+    const target = parseChordPro('five six seven eight').lines[0];
+    if (template?.kind !== 'lyrics' || target?.kind !== 'lyrics') throw new Error('expected lyrics');
+    expect(borrowChords(template.segments, target.segments).map((segment) => segment.chord)).toEqual(['C', 'G']);
   });
 });

@@ -2,7 +2,7 @@ import { formatChord, isChord, parseChord } from './chord';
 
 // Tokens that may sit on a chord line without being chords: bar lines,
 // repeat marks, "N.C.", and short notes in parentheses such as "(Chiude)".
-const FILLER = /^(\|+|-+|\/+|%|:|\.+|x\d+|\d+x|\(x?\d+x?\)|N\.?C\.?|\([^()\s]{1,20}\))$/i;
+const FILLER = /^(\|+|-+|\/+|%|:|\.+|x\d+|\d+x|\(x?\d+x?\)|N\.?C\.?|\([^()\s]{1,24}\))$/i;
 
 const LABEL_WORDS =
   /^(intro|strofa|rit\.?|ritornello|pre[- ]?rit\.?|pre[- ]?ritornello|ponte|bridge|special|finale|outro|coda|solo|interludio|chorus|pre[- ]?chorus|verse|strumentale|instrumental)\b/i;
@@ -29,12 +29,22 @@ export function isChordLine(line: string): boolean {
   return line.trim() !== '' && chordTokens(line) !== null;
 }
 
-// Some sheets group chords in brackets on a chord line, "[Re Sol Sim Fa#]".
-// Drop the brackets but keep every column where it was.
+// Chord lines may carry bracketed groups: plain chord groups "[Re Sol Sim]",
+// or notes such as "[1: F]" (first ending, play F) and "[2: to bridge]".
+// Chord groups lose their brackets; notes become one "(…)" token; a note
+// ending in chords keeps them as chords. Every column stays where it was.
 function unbracketGroups(line: string): string {
   return line.replace(/\[([^\]]*)\]/g, (whole, inner: string) => {
-    const tokens = inner.trim().split(/\s+/);
-    return tokens.length > 0 && tokens.every((token) => isChord(token)) ? ` ${inner} ` : whole;
+    const tokens = inner.trim().split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) return whole;
+    if (tokens.every((token) => isChord(token))) return ` ${inner} `;
+
+    let split = tokens.length;
+    while (split > 0 && isChord(tokens[split - 1] ?? '')) split -= 1;
+    const note = tokens.slice(0, split).join('_');
+    const chords = tokens.slice(split).join(' ');
+    const replaced = chords ? `(${note}) ${chords}` : `(${note})`;
+    return replaced.padEnd(whole.length, ' ');
   });
 }
 

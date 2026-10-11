@@ -4,8 +4,8 @@ export type Segment = { chord: string | null; text: string };
 // traced back to the lines that produced it.
 export type SheetLine =
   | { kind: 'lyrics'; segments: Segment[]; hasChords: boolean; inChorus: boolean; source: number }
-  | { kind: 'label'; text: string; source: number }
-  | { kind: 'comment'; text: string; source: number }
+  | { kind: 'label'; text: string; source: number; note?: string }
+  | { kind: 'comment'; text: string; source: number; note?: string }
   | { kind: 'empty'; source: number };
 
 export type SheetMeta = { title?: string; artist?: string; key?: string; tempo?: string };

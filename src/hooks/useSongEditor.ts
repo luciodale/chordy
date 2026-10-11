@@ -3,6 +3,7 @@ import { groupBlocks } from '@/lib/chords/blocks';
 import { parseChordPro } from '@/lib/chords/chordpro';
 import { textToChordPro } from '@/lib/chords/importText';
 import { renderSheet } from '@/lib/chords/render';
+import { fillRepeatedSections } from '@/lib/chords/repeat';
 import type { SongFields } from '@/lib/songs';
 
 export type EditorInitial = SongFields & { id: number | null; hasSource: boolean };
@@ -15,7 +16,7 @@ export function useSongEditor(initial: EditorInitial) {
   const [error, setError] = useState<string | null>(null);
 
   const preview = useMemo(
-    () => groupBlocks(renderSheet(parseChordPro(textToChordPro(fields.body)), PREVIEW_OPTIONS)),
+    () => groupBlocks(renderSheet(fillRepeatedSections(parseChordPro(textToChordPro(fields.body))), PREVIEW_OPTIONS)),
     [fields.body],
   );
 

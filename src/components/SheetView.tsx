@@ -29,7 +29,9 @@ type ChordChipProps = { chord: ChordView; muted?: boolean; onChordTap?: ChordTap
 function ChordChip({ chord, muted, onChordTap }: ChordChipProps) {
   // Not a chord (a repeat mark like "x4", "N.C."): plain annotation, no chip.
   if (!chord.chord) {
-    return <span className="whitespace-nowrap font-sans text-sm italic text-stone-500">{chord.label}</span>;
+    return (
+      <span className="whitespace-nowrap font-sans text-sm italic text-stone-500">{chord.label.replaceAll('_', ' ')}</span>
+    );
   }
   return (
     <button
@@ -117,7 +119,14 @@ type BlockLabelProps = { block: SheetBlock; sections?: SectionEditing };
 
 function BlockLabel({ block, sections }: BlockLabelProps) {
   if (!block.label) return null;
-  if (!sections || block.labelSource === null) return <p className={LABEL_TEXT}>{block.label}</p>;
+  if (!sections || block.labelSource === null) {
+    return (
+      <p className={LABEL_TEXT}>
+        {block.label}
+        {block.note && <span className="pl-2 font-normal normal-case tracking-normal italic">· {block.note}</span>}
+      </p>
+    );
+  }
 
   const picked = sections.placing?.from === block.labelSource;
   return (

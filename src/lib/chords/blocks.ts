@@ -2,6 +2,8 @@ import type { DisplayLine } from './render';
 
 export type SheetBlock = {
   label: string | null;
+  // Extra context shown next to the label, e.g. where borrowed chords came from.
+  note: string | null;
   // Line of the label in the ChordPro text when it can be moved or removed
   // (a {c: ...} line); null when there is none or it comes from {soc}.
   labelSource: number | null;
@@ -27,11 +29,11 @@ export function groupBlocks(lines: DisplayLine[]): SheetBlock[] {
     }
     if (line.kind === 'label' || line.kind === 'comment') {
       close();
-      current = { label: line.text, labelSource: line.source, lines: [] };
+      current = { label: line.text, note: line.note ?? null, labelSource: line.source, lines: [] };
       continue;
     }
     if (!current) {
-      current = { label: line.inChorus ? 'Chorus' : null, labelSource: null, lines: [] };
+      current = { label: line.inChorus ? 'Chorus' : null, note: null, labelSource: null, lines: [] };
     }
     current.lines.push(line);
   }
