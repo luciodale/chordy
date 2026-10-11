@@ -13,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "chordy-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "1eeab620-15f7-40a3-9a1c-439ba0a9d006",
       "migrations_dir": "drizzle/migrations"
     }
   ]
