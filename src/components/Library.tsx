@@ -1,6 +1,7 @@
 import { Check, Download, Loader2, Plus, Search } from 'lucide-react';
 import { resultKey, useLibrarySearch } from '@/hooks/useLibrarySearch';
 import type { SearchResult, SourceResults } from '@/lib/catalog';
+import { ReloadButton } from './ReloadButton';
 import type { SongSummary } from '@/lib/songs';
 
 type LibraryProps = { songs: SongSummary[] };
@@ -83,7 +84,8 @@ export function Library({ songs }: LibraryProps) {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-6">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Chordy</h1>
+        <h1 className="flex-1 text-2xl font-bold">Chordy</h1>
+        <ReloadButton />
         <a
           href="/songs/new"
           className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold text-stone-600 hover:bg-stone-200 dark:text-stone-300 dark:hover:bg-stone-800"

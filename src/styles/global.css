@@ -2,6 +2,9 @@
 @import "@fontsource/roboto-mono/700.css";
 @import "tailwindcss";
 
+/* Opened from the home screen: no browser chrome, so no browser reload. */
+@custom-variant standalone (@media (display-mode: standalone));
+
 @theme {
   /* Monospace like a printed chord sheet: chord widths become exact. */
   --font-sheet: "Roboto Mono", ui-monospace, monospace;

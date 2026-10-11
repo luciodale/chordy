@@ -10,6 +10,7 @@ import { useWakeLock } from '@/hooks/useWakeLock';
 import type { SongPrefs } from '@/lib/songs';
 import { ChordPanel } from './ChordPanel';
 import { ControlsBar } from './ControlsBar';
+import { ReloadButton } from './ReloadButton';
 import { SectionsBar } from './SectionsBar';
 import { SheetView } from './SheetView';
 
@@ -74,6 +75,7 @@ export function SongViewer({ song }: SongViewerProps) {
         >
           <Pencil className="size-5" />
         </a>
+        <ReloadButton />
       </header>
 
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: tapping the sheet hides the bar on touch screens; every control stays reachable by keyboard */}
