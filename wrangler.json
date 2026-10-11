@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "chordy",
+  "account_id": "9d91180a95ece49736691bc4c49a1bb3",
   "compatibility_date": "2025-06-01",
   "compatibility_flags": ["nodejs_compat"],
   "main": "./dist/_worker.js/index.js",
