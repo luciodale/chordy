@@ -1,4 +1,4 @@
-import { ChevronLeft, RefreshCw, Trash2 } from 'lucide-react';
+import { ChevronLeft, Trash2 } from 'lucide-react';
 import { type EditorInitial, useSongEditor } from '@/hooks/useSongEditor';
 
 type SongEditorProps = { initial: EditorInitial };
@@ -17,18 +17,6 @@ export function SongEditor({ initial }: SongEditorProps) {
           <ChevronLeft className="size-6" />
         </a>
         <h1 className="flex-1 text-xl font-bold">{editor.isNew ? 'New song' : 'Edit song'}</h1>
-        {editor.canRefresh && (
-          <button
-            type="button"
-            onClick={editor.handleRefresh}
-            disabled={editor.saving}
-            aria-label="Refresh from source"
-            title="Refresh from source"
-            className="rounded-lg p-2 text-stone-500 hover:bg-stone-200 dark:hover:bg-stone-800"
-          >
-            <RefreshCw className="size-5" />
-          </button>
-        )}
         {!editor.isNew && (
           <button
             type="button"

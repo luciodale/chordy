@@ -9,7 +9,7 @@ const id = parseId(Astro.params.id);
 const song = id ? await getSong(getDb(Astro.locals.runtime.env.DB), id) : undefined;
 if (!song) return Astro.redirect('/');
 
-const initial = { id: song.id, title: song.title, artist: song.artist, songKey: song.songKey, body: song.body, hasSource: song.source !== 'manual' };
+const initial = { id: song.id, title: song.title, artist: song.artist, songKey: song.songKey, body: song.body };
 ---
 
 <Layout title={`Edit ${song.title} · Chordy`}>

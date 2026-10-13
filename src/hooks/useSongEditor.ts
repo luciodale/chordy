@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { SongFields } from '@/lib/songs';
 
-export type EditorInitial = SongFields & { id: number | null; hasSource: boolean };
+export type EditorInitial = SongFields & { id: number | null };
 
 export function useSongEditor(initial: EditorInitial) {
   const [fields, setFields] = useState<SongFields>(initial);
@@ -31,25 +31,11 @@ export function useSongEditor(initial: EditorInitial) {
     }
   }
 
-  async function handleRefresh() {
-    if (!initial.id || !window.confirm('Replace the sheet with a fresh copy from the source?')) return;
-    setSaving(true);
-    setError(null);
-    const response = await fetch(`/api/songs/${initial.id}/refresh`, { method: 'POST' });
-    if (response.ok) {
-      window.location.assign(`/songs/${initial.id}`);
-      return;
-    }
-    const body = (await response.json().catch(() => ({}))) as { error?: string };
-    setError(body.error ?? 'Refresh failed');
-    setSaving(false);
-  }
-
   async function handleDelete() {
     if (!initial.id || !window.confirm(`Delete "${initial.title}"?`)) return;
     await fetch(`/api/songs/${initial.id}`, { method: 'DELETE' });
     window.location.assign('/');
   }
 
-  return { fields, saving, error, isNew: initial.id === null, canRefresh: initial.hasSource, handleChange, handleSave, handleRefresh, handleDelete };
+  return { fields, saving, error, isNew: initial.id === null, handleChange, handleSave, handleDelete };
 }
