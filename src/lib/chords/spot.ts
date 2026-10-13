@@ -16,12 +16,12 @@ export function spotRange(body: string, spot: ChordSpot): { start: number; end: 
   return { start, end: start + match[0].length };
 }
 
-// Replaces the chord at `spot`, or removes it when `name` is null. Returns
-// null when the chord has no bracket in the text.
-export function replaceChord(body: string, spot: ChordSpot, name: string | null): string | null {
+// Replaces the chord at `spot`. Returns null when the chord has no bracket in
+// the text.
+export function replaceChord(body: string, spot: ChordSpot, name: string): string | null {
   const range = spotRange(body, spot);
   if (!range) return null;
-  return body.slice(0, range.start) + (name === null ? '' : `[${name}]`) + body.slice(range.end);
+  return `${body.slice(0, range.start)}[${name}]${body.slice(range.end)}`;
 }
 
 // Turns a chord typed over the displayed (transposed) sheet back into the

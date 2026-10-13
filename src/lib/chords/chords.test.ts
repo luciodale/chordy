@@ -374,10 +374,6 @@ describe('chord spots', () => {
     );
   });
 
-  it('removes the tapped chord', () => {
-    expect(replaceChord('[C]sun [D]shine', { line: 0, chord: 0 }, null)).toBe('sun [D]shine');
-  });
-
   it('refuses borrowed chords, which have no bracket', () => {
     expect(replaceChord('a\nplain words', { line: 1, chord: 0 }, 'C')).toBeNull();
   });

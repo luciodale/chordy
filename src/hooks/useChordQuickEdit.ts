@@ -14,8 +14,8 @@ type QuickEditOptions = {
   onOpen: () => void;
 };
 
-// Half the popover width (w-64) plus a small gutter.
-const HALF_WIDTH = '8.5rem';
+// Half the popover width (w-56) plus a small gutter.
+const HALF_WIDTH = '7.5rem';
 
 // Anchors the popover under the chord, or above it in the lower half of the
 // screen, horizontally centred on it but kept inside the viewport.
@@ -38,7 +38,7 @@ export function useChordQuickEdit({ songBody, transpose, sourcePreferFlats, onOp
     setError(null);
   }
 
-  async function write(name: string | null) {
+  async function write(name: string) {
     if (!target) return;
     const next = replaceChord(songBody.body, target.spot, name);
     if (next === null) return;
@@ -78,7 +78,6 @@ export function useChordQuickEdit({ songBody, transpose, sourcePreferFlats, onOp
       }
       write(name);
     },
-    handleRemove: () => write(null),
     handleClose: close,
   };
 }
