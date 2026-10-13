@@ -1,11 +1,15 @@
 import clsx from 'clsx';
-import { useFitChords } from '@/hooks/useFitChords';
 import { Move, X } from 'lucide-react';
+import type { ChordTap } from '@/hooks/useChordQuickEdit';
+import { useFitChords } from '@/hooks/useFitChords';
 import type { Placing } from '@/hooks/useSectionEditor';
+import { useTapGuard } from '@/hooks/useTapGuard';
 import type { SheetBlock } from '@/lib/chords/blocks';
 import type { ChordView, DisplayLine, Piece } from '@/lib/chords/render';
+import type { ChordSpot } from '@/lib/chords/spot';
 
-type ChordTap = (chord: ChordView) => void;
+// `point` is where the finger lifted; null for a keyboard press.
+type ChordTapHandler = (tap: ChordTap, point: { x: number; y: number } | null) => void;
 
 // Present while the viewer is in Sections mode.
 export type SectionEditing = {
@@ -18,15 +22,15 @@ export type SectionEditing = {
 type SheetViewProps = {
   blocks: SheetBlock[];
   fontClass: string;
-  onChordTap?: ChordTap;
+  onChordTap?: (tap: ChordTap) => void;
   sections?: SectionEditing;
 };
 
 const NBSP = ' ';
 
-type ChordChipProps = { chord: ChordView; muted?: boolean; onChordTap?: ChordTap };
+type ChordChipProps = { chord: ChordView; spot: ChordSpot; muted?: boolean; onChordTap?: ChordTapHandler };
 
-function ChordChip({ chord, muted, onChordTap }: ChordChipProps) {
+function ChordChip({ chord, spot, muted, onChordTap }: ChordChipProps) {
   // Not a chord (a repeat mark like "x4", "N.C."): plain annotation, no chip.
   if (!chord.chord) {
     return (
@@ -45,7 +49,8 @@ function ChordChip({ chord, muted, onChordTap }: ChordChipProps) {
       )}
       onClick={(event) => {
         event.stopPropagation();
-        onChordTap?.(chord);
+        const point = event.detail === 0 ? null : { x: event.clientX, y: event.clientY };
+        onChordTap?.({ spot, label: chord.label, rect: event.currentTarget.getBoundingClientRect() }, point);
       }}
     >
       {chord.label}
@@ -55,11 +60,12 @@ function ChordChip({ chord, muted, onChordTap }: ChordChipProps) {
 
 type PieceViewProps = {
   piece: Piece;
+  spot: ChordSpot;
   showChordRow: boolean;
-  onChordTap?: ChordTap;
+  onChordTap?: ChordTapHandler;
 };
 
-function PieceView({ piece, showChordRow, onChordTap }: PieceViewProps) {
+function PieceView({ piece, spot, showChordRow, onChordTap }: PieceViewProps) {
   const chord = piece.chord;
   return (
     <span className="inline-flex flex-col">
@@ -71,7 +77,7 @@ function PieceView({ piece, showChordRow, onChordTap }: PieceViewProps) {
             data-float={piece.reserve ? undefined : ''}
             className={clsx('flex', piece.reserve ? 'pr-2' : 'w-0 data-fit:w-auto data-fit:pr-2')}
           >
-            <ChordChip chord={chord} onChordTap={onChordTap} />
+            <ChordChip chord={chord} spot={spot} onChordTap={onChordTap} />
           </span>
         )}
       <span className="whitespace-pre">{piece.text || NBSP}</span>
@@ -79,19 +85,25 @@ function PieceView({ piece, showChordRow, onChordTap }: PieceViewProps) {
   );
 }
 
-type LineViewProps = { line: DisplayLine; onChordTap?: ChordTap };
+type LineViewProps = { line: DisplayLine; onChordTap?: ChordTapHandler };
 
 function LineView({ line, onChordTap }: LineViewProps) {
   if (line.kind !== 'lyrics') return null;
 
+  // Each chord's position among the chords of its source line.
+  let next = line.chordOffset;
+  function spotOf(piece: Piece): ChordSpot {
+    return { line: line.source, chord: piece.chord ? next++ : 0 };
+  }
+
   // Instrumental: chords only, dimmed and evenly spaced so they read as
   // "play this" rather than as part of the sung line.
   if (!line.hasLyrics) {
-    const chords = line.words.flat().flatMap((piece) => (piece.chord ? [piece.chord] : []));
+    const chords = line.words.flat().flatMap((piece) => (piece.chord ? [{ chord: piece.chord, spot: spotOf(piece) }] : []));
     return (
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 py-0.5">
-        {chords.map((chord, index) => (
-          <ChordChip key={`${index}-${chord.label}`} chord={chord} muted onChordTap={onChordTap} />
+        {chords.map(({ chord, spot }, index) => (
+          <ChordChip key={`${index}-${chord.label}`} chord={chord} spot={spot} muted onChordTap={onChordTap} />
         ))}
       </div>
     );
@@ -105,7 +117,13 @@ function LineView({ line, onChordTap }: LineViewProps) {
         // A word wider than the whole row may still wrap between its chord pieces.
         <span key={wordIndex} className="inline-flex max-w-full flex-wrap items-end">
           {word.map((piece, pieceIndex) => (
-            <PieceView key={pieceIndex} piece={piece} showChordRow={line.hasChords} onChordTap={onChordTap} />
+            <PieceView
+              key={pieceIndex}
+              piece={piece}
+              spot={spotOf(piece)}
+              showChordRow={line.hasChords}
+              onChordTap={onChordTap}
+            />
           ))}
         </span>
       ))}
@@ -180,9 +198,17 @@ function DropTarget({ before, sections }: DropTargetProps) {
 
 export function SheetView({ blocks, fontClass, onChordTap, sections }: SheetViewProps) {
   const ref = useFitChords(blocks, fontClass);
+  const guard = useTapGuard();
   const placing = sections?.placing ? sections : null;
+  // A chord only reacts to a tap, never to the end of a scroll gesture.
+  const handleChordTap: ChordTapHandler | undefined =
+    onChordTap && ((tap, point) => (!point || guard.isTap(point)) && onChordTap(tap));
   return (
-    <div ref={ref} className={clsx('flex flex-col gap-6 font-sheet leading-snug', fontClass)}>
+    <div
+      ref={ref}
+      onPointerDownCapture={guard.handlePointerDown}
+      className={clsx('flex flex-col gap-6 font-sheet leading-snug', fontClass)}
+    >
       {blocks.map((block, blockIndex) => (
         <section key={blockIndex} className="flex flex-col gap-2">
           <BlockLabel block={block} sections={sections} />
@@ -193,7 +219,7 @@ export function SheetView({ blocks, fontClass, onChordTap, sections }: SheetView
             return (
               <div key={lineIndex} className="flex flex-col gap-1">
                 {showTarget && <DropTarget before={line.source} sections={placing} />}
-                <LineView line={line} onChordTap={onChordTap} />
+                <LineView line={line} onChordTap={handleChordTap} />
               </div>
             );
           })}

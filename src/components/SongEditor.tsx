@@ -1,6 +1,5 @@
 import { ChevronLeft, RefreshCw, Trash2 } from 'lucide-react';
 import { type EditorInitial, useSongEditor } from '@/hooks/useSongEditor';
-import { SheetView } from './SheetView';
 
 type SongEditorProps = { initial: EditorInitial };
 
@@ -12,7 +11,7 @@ export function SongEditor({ initial }: SongEditorProps) {
   const back = initial.id ? `/songs/${initial.id}` : '/';
 
   return (
-    <form onSubmit={editor.handleSave} className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4">
+    <form onSubmit={editor.handleSave} className="mx-auto flex min-h-dvh max-w-4xl flex-col gap-4 px-4 py-4">
       <header className="flex items-center gap-2">
         <a href={back} aria-label="Back" className="-ml-2 rounded-lg p-2 text-stone-500 hover:bg-stone-200 dark:hover:bg-stone-800">
           <ChevronLeft className="size-6" />
@@ -73,20 +72,14 @@ export function SongEditor({ initial }: SongEditorProps) {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <textarea
-          required
-          rows={24}
-          spellCheck={false}
-          placeholder="Paste a sheet: chords over lyrics (C or Do notation) or ChordPro"
-          value={editor.fields.body}
-          onChange={(event) => editor.handleChange('body', event.target.value)}
-          className={`${INPUT} font-mono text-sm`}
-        />
-        <div className="rounded-lg border border-dashed border-stone-300 p-4 dark:border-stone-700">
-          <SheetView blocks={editor.preview} fontClass="text-base" />
-        </div>
-      </div>
+      <textarea
+        required
+        spellCheck={false}
+        placeholder="Paste a sheet: chords over lyrics (C or Do notation) or ChordPro"
+        value={editor.fields.body}
+        onChange={(event) => editor.handleChange('body', event.target.value)}
+        className={`${INPUT} flex-1 font-mono text-sm`}
+      />
     </form>
   );
 }

@@ -52,5 +52,5 @@ export function useAutoScroll(speed: number) {
     [],
   );
 
-  return { isScrolling, handleToggleScroll: () => (isScrolling ? stop() : start()) };
+  return { isScrolling, handleStop: stop, handleToggleScroll: () => (isScrolling ? stop() : start()) };
 }

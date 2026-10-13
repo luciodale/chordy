@@ -20,8 +20,18 @@ export type Piece = { chord: ChordView | null; text: string; reserve: boolean };
 // syllable it belongs to.
 export type Word = Piece[];
 
+// `chordOffset` is how many chords of the same source line come before this
+// display line, so a chord on screen maps back to its bracket in the text.
 export type DisplayLine =
-  | { kind: 'lyrics'; words: Word[]; hasChords: boolean; hasLyrics: boolean; inChorus: boolean; source: number }
+  | {
+      kind: 'lyrics';
+      words: Word[];
+      hasChords: boolean;
+      hasLyrics: boolean;
+      inChorus: boolean;
+      source: number;
+      chordOffset: number;
+    }
   | Exclude<SheetLine, { kind: 'lyrics' }>;
 
 export function transformChord(raw: string, options: DisplayOptions): ChordView {
@@ -111,7 +121,17 @@ export function renderSheet(sheet: Sheet, options: DisplayOptions): DisplayLine[
     // spacing is what separates the chords.
     const hasLyrics = line.segments.some((segment) => segment.text.trim() !== '');
     if (!hasLyrics) {
-      return [{ kind: 'lyrics', words: toWords(line.segments, options), hasChords: line.hasChords, hasLyrics, inChorus: line.inChorus, source: line.source }];
+      return [
+        {
+          kind: 'lyrics',
+          words: toWords(line.segments, options),
+          hasChords: line.hasChords,
+          hasLyrics,
+          inChorus: line.inChorus,
+          source: line.source,
+          chordOffset: 0,
+        },
+      ];
     }
     const { sung, tail } = splitTrailingChords(line.segments);
     const rendered: DisplayLine[] = [
@@ -122,6 +142,7 @@ export function renderSheet(sheet: Sheet, options: DisplayOptions): DisplayLine[
         hasLyrics,
         inChorus: line.inChorus,
         source: line.source,
+        chordOffset: 0,
       },
     ];
     if (tail.length > 0) {
@@ -132,6 +153,7 @@ export function renderSheet(sheet: Sheet, options: DisplayOptions): DisplayLine[
         hasLyrics: false,
         inChorus: line.inChorus,
         source: line.source,
+        chordOffset: sung.filter((segment) => segment.chord !== null).length,
       });
     }
     return rendered;

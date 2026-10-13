@@ -8,8 +8,8 @@ import { cleanContent } from '../sources/ultimateguitar';
 import { borrowChords, fillRepeatedSections } from './repeat';
 import { insertLabel, moveLine, removeLine } from './sections';
 import { groupBlocks } from './blocks';
-import { chordIntervals, chordVoicing } from './piano';
 import { renderSheet } from './render';
+import { replaceChord, sourceChordName } from './spot';
 
 function chord(token: string) {
   const parsed = parseChord(token);
@@ -31,6 +31,7 @@ describe('parseChord', () => {
     ['DO#/RE#m', { root: 'C#', suffix: '', bass: 'D#' }],
     ['MIb7/4', { root: 'Eb', suffix: '7sus4', bass: null }],
     ['LA/4', { root: 'A', suffix: 'sus4', bass: null }],
+    ['LAm7/4', { root: 'A', suffix: 'm7sus4', bass: null }],
     ['SIbm7', { root: 'Bb', suffix: 'm7', bass: null }],
   ])('%s', (token, expected) => {
     expect(parseChord(token)).toEqual(expected);
@@ -120,42 +121,6 @@ describe('parse and render', () => {
       ],
       [[null, 'riga']],
     ]);
-  });
-});
-
-describe('chordVoicing', () => {
-  it('stacks a slash chord with the bass first', () => {
-    expect(chordVoicing(chord('C/E')).keys).toEqual([4, 12, 16, 19]);
-  });
-
-  it('reads Italian sus4 shorthand', () => {
-    expect(chordVoicing(chord('SOL4')).keys).toEqual([7, 12, 14]);
-  });
-
-  it('voices a seventh chord', () => {
-    expect(chordVoicing(chord('Am7')).keys).toEqual([9, 12, 16, 19]);
-  });
-});
-
-describe('chordIntervals', () => {
-  it.each([
-    ['', [0, 4, 7]],
-    ['m7', [0, 3, 7, 10]],
-    ['maj7', [0, 4, 7, 11]],
-    ['7', [0, 4, 7, 10]],
-    ['m7b5', [0, 3, 6, 10]],
-    ['sus4', [0, 5, 7]],
-    ['7sus4', [0, 5, 7, 10]],
-    ['4', [0, 5, 7]],
-    ['add9', [0, 4, 7, 14]],
-    ['9', [0, 4, 7, 10, 14]],
-    ['7#9', [0, 4, 7, 10, 15]],
-    ['6', [0, 4, 7, 9]],
-    ['dim7', [0, 3, 6, 9]],
-    ['aug', [0, 4, 8]],
-    ['m', [0, 3, 7]],
-  ])('%s', (suffix, expected) => {
-    expect(chordIntervals(suffix)).toEqual(expected);
   });
 });
 
@@ -388,5 +353,46 @@ describe('borrowChords', () => {
     const target = parseChordPro('five six seven eight').lines[0];
     if (template?.kind !== 'lyrics' || target?.kind !== 'lyrics') throw new Error('expected lyrics');
     expect(borrowChords(template.segments, target.segments).map((segment) => segment.chord)).toEqual(['C', 'G']);
+  });
+});
+
+describe('chord spots', () => {
+  const options = { transpose: 0, simplify: false, notation: 'english', preferFlats: false } as const;
+
+  it('numbers the instrumental tail after the sung chords of its line', () => {
+    const lines = renderSheet(parseChordPro('{c: Intro}\n[C]sun [D]shine [G]  [B7]'), options);
+    expect(lines.map((line) => (line.kind === 'lyrics' ? [line.source, line.chordOffset] : null))).toEqual([
+      null,
+      [1, 0],
+      [1, 2],
+    ]);
+  });
+
+  it('replaces the tapped chord in the text', () => {
+    expect(replaceChord('{c: Intro}\n[C]sun [D]shine', { line: 1, chord: 1 }, 'Em7')).toBe(
+      '{c: Intro}\n[C]sun [Em7]shine',
+    );
+  });
+
+  it('removes the tapped chord', () => {
+    expect(replaceChord('[C]sun [D]shine', { line: 0, chord: 0 }, null)).toBe('sun [D]shine');
+  });
+
+  it('refuses borrowed chords, which have no bracket', () => {
+    expect(replaceChord('a\nplain words', { line: 1, chord: 0 }, 'C')).toBeNull();
+  });
+
+  it('writes a chord typed over a transposed sheet back in the source key', () => {
+    expect(sourceChordName('Re/Fa#', -2, false)).toBe('E/G#');
+    expect(sourceChordName('Bb', 1, true)).toBe('A');
+    expect(sourceChordName('hello', 0, false)).toBeNull();
+  });
+});
+
+describe('Italian minor sus shorthand', () => {
+  it('reads an intro line ending in LAm7/4 as chords', () => {
+    expect(textToChordPro('Intro:\nSOL RE/FA# MIm7    DOadd9 SOL/SI LAm7/4')).toBe(
+      '{c: Intro}\n[G] [D/F#] [Em7] [Cadd9] [G/B] [Am7sus4]',
+    );
   });
 });

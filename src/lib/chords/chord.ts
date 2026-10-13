@@ -27,8 +27,9 @@ export function parseChord(token: string): Chord | null {
     }
   }
 
-  // Italian sheets write "MIb7/4" for Eb7sus4 and "LA/4" for Asus4.
-  rest = rest.replace(/^(7?)\/([24])$/, '$1sus$2');
+  // Italian sheets write "MIb7/4" for Eb7sus4, "LAm7/4" for Am7sus4 and
+  // "LA/4" for Asus4.
+  rest = rest.replace(/^((?:m|-)?7?)\/([24])$/, '$1sus$2');
   if (!SUFFIX_PATTERN.test(rest.replace('6/9', '69'))) return null;
   // Italian sheets write minor as "La-" and major seventh as "Si7+"; in
   // English "7+" would mean augmented, so both are spelled out.

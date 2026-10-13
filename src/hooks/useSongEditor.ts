@@ -1,24 +1,12 @@
-import { useMemo, useState } from 'react';
-import { groupBlocks } from '@/lib/chords/blocks';
-import { parseChordPro } from '@/lib/chords/chordpro';
-import { textToChordPro } from '@/lib/chords/importText';
-import { renderSheet } from '@/lib/chords/render';
-import { fillRepeatedSections } from '@/lib/chords/repeat';
+import { useState } from 'react';
 import type { SongFields } from '@/lib/songs';
 
 export type EditorInitial = SongFields & { id: number | null; hasSource: boolean };
-
-const PREVIEW_OPTIONS = { transpose: 0, simplify: false, notation: 'english', preferFlats: false } as const;
 
 export function useSongEditor(initial: EditorInitial) {
   const [fields, setFields] = useState<SongFields>(initial);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const preview = useMemo(
-    () => groupBlocks(renderSheet(fillRepeatedSections(parseChordPro(textToChordPro(fields.body))), PREVIEW_OPTIONS)),
-    [fields.body],
-  );
 
   function handleChange(field: keyof SongFields, value: string) {
     setFields({ ...fields, [field]: value });
@@ -63,5 +51,5 @@ export function useSongEditor(initial: EditorInitial) {
     window.location.assign('/');
   }
 
-  return { fields, preview, saving, error, isNew: initial.id === null, canRefresh: initial.hasSource, handleChange, handleSave, handleRefresh, handleDelete };
+  return { fields, saving, error, isNew: initial.id === null, canRefresh: initial.hasSource, handleChange, handleSave, handleRefresh, handleDelete };
 }

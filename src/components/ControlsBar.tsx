@@ -1,8 +1,10 @@
 import clsx from 'clsx';
-import { AArrowDown, AArrowUp, Minus, Pause, Play, Plus } from 'lucide-react';
+import { AArrowDown, AArrowUp, ChevronLeft, Minus, Pause, Play, Plus } from 'lucide-react';
+import { ButtonGroup } from './ButtonGroup';
 import { IconButton } from './IconButton';
 
 type ControlsBarProps = {
+  backHref: string;
   visible: boolean;
   transpose: number;
   displayKey: string | null;
@@ -22,10 +24,6 @@ type ControlsBarProps = {
   onFaster: () => void;
 };
 
-function Group({ children }: { children: React.ReactNode }) {
-  return <div className="flex items-center rounded-xl bg-stone-100 dark:bg-stone-800/60">{children}</div>;
-}
-
 export function ControlsBar(props: ControlsBarProps) {
   const offset = props.transpose > 0 ? `+${props.transpose}` : String(props.transpose);
   return (
@@ -35,8 +33,15 @@ export function ControlsBar(props: ControlsBarProps) {
         !props.visible && 'translate-y-full',
       )}
     >
-      <div className="mx-auto flex max-w-md items-center justify-between gap-1 p-2">
-        <Group>
+      {/* Clears the home indicator on phones; Tailwind has no safe area token. */}
+      <div className="mx-auto flex max-w-lg items-center justify-between gap-1 p-2 pb-[calc(--spacing(2)+env(safe-area-inset-bottom))]">
+        <ButtonGroup>
+          <IconButton label="Library" href={props.backHref}>
+            <ChevronLeft className="size-5" />
+          </IconButton>
+        </ButtonGroup>
+
+        <ButtonGroup>
           <IconButton label="Transpose down" onClick={props.onTransposeDown}>
             <Minus className="size-5" />
           </IconButton>
@@ -49,18 +54,18 @@ export function ControlsBar(props: ControlsBarProps) {
           <IconButton label="Transpose up" onClick={props.onTransposeUp}>
             <Plus className="size-5" />
           </IconButton>
-        </Group>
+        </ButtonGroup>
 
-        <Group>
+        <ButtonGroup>
           <IconButton label="Smaller text" onClick={props.onShrink} disabled={!props.canShrink}>
             <AArrowDown className="size-5" />
           </IconButton>
           <IconButton label="Larger text" onClick={props.onGrow} disabled={!props.canGrow}>
             <AArrowUp className="size-5" />
           </IconButton>
-        </Group>
+        </ButtonGroup>
 
-        <Group>
+        <ButtonGroup>
           <IconButton label="Slower" onClick={props.onSlower} disabled={!props.canSlower}>
             <Minus className="size-5" />
           </IconButton>
@@ -73,7 +78,7 @@ export function ControlsBar(props: ControlsBarProps) {
           <IconButton label="Faster" onClick={props.onFaster} disabled={!props.canFaster}>
             <Plus className="size-5" />
           </IconButton>
-        </Group>
+        </ButtonGroup>
       </div>
     </div>
   );

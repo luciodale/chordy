@@ -30,6 +30,8 @@ export function useSheet({ body, songKey, transpose, simplify, notation }: Sheet
       blocks: groupBlocks(renderSheet(sheet, options)),
       displayKey: keyToken && keyChord ? transformChord(keyToken, { ...options, simplify: true }).label : null,
       preferFlats: options.preferFlats,
+      // Spelling of the untransposed key, used when writing chords back.
+      sourcePreferFlats: keyChord ? prefersFlats(keyChord, 0) : false,
     };
   }, [body, songKey, transpose, simplify, notation]);
 }

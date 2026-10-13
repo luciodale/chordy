@@ -13,7 +13,7 @@ type SectionsBarProps = {
 export function SectionsBar({ placing, error, onNewLabel, onCancelPlacing, onDone }: SectionsBarProps) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-20 border-t border-stone-200 bg-white/95 backdrop-blur dark:border-stone-800 dark:bg-stone-950/95">
-      <div className="mx-auto flex max-w-md flex-col gap-2 p-3">
+      <div className="mx-auto flex max-w-md flex-col gap-2 p-3 pb-[calc(--spacing(3)+env(safe-area-inset-bottom))]">
         {error && <p className="text-sm text-red-600">{error}</p>}
         {placing ? (
           <div className="flex items-center justify-between gap-2">
